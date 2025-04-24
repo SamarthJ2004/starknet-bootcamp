@@ -7,12 +7,12 @@ pub trait ICounter<TContractState> {
 }
 
 #[starknet::contract]
-pub mod YourContract {
+pub mod Counter {
     use OwnableComponent::InternalTrait;
-use starknet::storage::{StoragePointerWriteAccess, StoragePointerReadAccess};
-    use super::ICounter;
-    use starknet::{ContractAddress, get_caller_address};
     use openzeppelin_access::ownable::OwnableComponent;
+    use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
+    use starknet::{ContractAddress, get_caller_address};
+    use super::ICounter;
 
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
 
@@ -44,12 +44,12 @@ use starknet::storage::{StoragePointerWriteAccess, StoragePointerReadAccess};
 
     #[derive(Drop, starknet::Event)]
     pub struct Increased {
-        account: ContractAddress,
+        pub account: ContractAddress,
     }
 
     #[derive(Drop, starknet::Event)]
     pub struct Decreased {
-        account: ContractAddress,
+        pub account: ContractAddress,
     }
 
     pub mod Error {
@@ -65,7 +65,10 @@ use starknet::storage::{StoragePointerWriteAccess, StoragePointerReadAccess};
         fn increase_counter(ref self: ContractState) {
             let new_value = self.counter.read() + 1;
             self.counter.write(new_value);
-            self.emit(Increased { account: get_caller_address() });
+            self
+                .emit(
+                    Increased { account: get_caller_address() },
+                ); //get_caller_address by default gives the address of the UDC : universal deployment contract, if you want to set this to deployer address pass it as an argument
         }
 
         fn decrease_counter(ref self: ContractState) {
